@@ -17,7 +17,7 @@
     "@aws-cdk/aws-iam": "^1.203.0",
     "@aws-cdk/aws-lambda": "^1.203.0",
     "@aws-cdk/aws-s3": "^1.203.0",
-    "aws-cdk-lib": "^2.177.0",
+    "aws-cdk-lib": "^2.181.0",
     "aws-sdk": "^2.1692.0",
     "bcryptjs": "^3.0.2",
     "constructs": "^10.4.2"

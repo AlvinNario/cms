@@ -7,12 +7,46 @@ const iam = require('aws-cdk-lib/aws-iam');
 const events = require('aws-cdk-lib/aws-events');
 const targets = require('aws-cdk-lib/aws-events-targets');
 const bcrypt = require('bcryptjs'); // Used to compare hashed passwords
+const cognito = require('aws-cdk-lib/aws-cognito');
 
 class AwsMarketplaceApiStack extends cdk.Stack {
   constructor(scope, id, props) {
     super(scope, id, props);
 
-    // 📌 Reference the existing Users table
+    // Create a Cognito User Pool with email and password authentication
+    const userPool = new cognito.UserPool(this, 'CMSAuthUserPool', {
+      userPoolName: 'CMSAuthUserPool',
+      selfSignUpEnabled: true, // Allow user registration
+      signInAliases: { email: true }, // Users sign in with email
+      autoVerify: { email: true }, // Automatically verify emails
+      passwordPolicy: {
+        minLength: 8,
+        requireUppercase: true,
+        requireLowercase: true,
+        requireDigits: true,
+        requireSymbols: false, // No special symbols required
+      },
+      accountRecovery: cognito.AccountRecovery.EMAIL_ONLY, // Recovery via email
+      removalPolicy: cdk.RemovalPolicy.RETAIN, // Keep User Pool even if stack is deleted
+    });
+
+    // Output User Pool ID
+    new cdk.CfnOutput(this, 'UserPoolId', { value: userPool.userPoolId });
+
+    // Create a Cognito User Pool Client WITHOUT a client secret
+    const userPoolClient = new cognito.UserPoolClient(this, 'CMSAuthUserPoolClient', {
+      userPool,
+      userPoolClientName: 'CMSAppClient',
+      generateSecret: false, // Disables client secret (for public apps like web and mobile)
+      authFlows: {
+        userPassword: true, // Allow email & password login
+      },
+      preventUserExistenceErrors: true, // Improve security by preventing user existence errors
+    });
+
+    // Output User Pool Client ID
+    new cdk.CfnOutput(this, 'UserPoolClientId', { value: userPoolClient.userPoolClientId });
+    
     // 📌 Users Table
     const usersTable = new dynamodb.Table(this, 'UserTable', {
       tableName: 'Users',
