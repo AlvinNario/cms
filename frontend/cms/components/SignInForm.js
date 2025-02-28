@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { signIn } from "@/src/utils/cognitoAuth";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 
 export default function SignInForm() {
   const [email, setEmail] = useState("");
@@ -12,27 +13,41 @@ export default function SignInForm() {
   const [userAttributes, setUserAttributes] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
   const router = useRouter();
 
-  // Ensure that hydration mismatch doesn't happen by using useEffect
   useEffect(() => {
-    setEmail(""); // Reset fields on client-side only
+    setEmail("");
     setPassword("");
   }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setError(null);
+    setEmailError("");
+    setPasswordError("");
+    setLoading(true);
+
+    if (!email) {
+      setEmailError("Email is required.");
+      setLoading(false);
+      return;
+    }
+    if (!password) {
+      setPasswordError("Password is required.");
+      setLoading(false);
+      return;
+    }
 
     try {
       const response = await signIn(email.trim(), password, requireNewPassword ? newPassword : null);
 
       if (response?.message === "NEW_PASSWORD_REQUIRED") {
         setRequireNewPassword(true);
-        setUserAttributes(response.userAttributes || {}); 
+        setUserAttributes(response.userAttributes || {});
       } else {
-        router.push("/dashboard"); 
+        router.push("/dashboard");
       }
     } catch (err) {
       if (err.message === "NEW_PASSWORD_REQUIRED") {
@@ -47,47 +62,57 @@ export default function SignInForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-80">
-      <input
-        type="email"
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        className="border p-2 rounded text-black"
-        required
-        disabled={loading || requireNewPassword}
-      />
-      <input
-        type="password"
-        placeholder="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        className="border p-2 rounded text-black"
-        required
-        disabled={loading || requireNewPassword}
-      />
-      
-      {requireNewPassword && (
-        <input
-          type="password"
-          placeholder="New Password"
-          value={newPassword}
-          onChange={(e) => setNewPassword(e.target.value)}
-          className="border p-2 rounded"
-          required
-          disabled={loading}
-        />
-      )}
-
-      <button
-        type="submit"
-        className="bg-blue-600 text-white p-2 rounded disabled:opacity-50"
-        disabled={loading}
+    <div className="flex items-center justify-center bg-gray-100 dark:bg-gray-900 transition-all">
+      <motion.div
+        className="w-full max-w-md p-8 bg-white dark:bg-gray-800 shadow-lg rounded-lg"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
       >
-        {loading ? "Processing..." : requireNewPassword ? "Set New Password" : "Sign In"}
-      </button>
+        <h2 className="text-2xl font-semibold text-center text-gray-900 dark:text-white">
+          Sign In with Cognito Account
+        </h2>
 
-      {error && <p className="text-red-600 text-sm">{error}</p>}
-    </form>
+        {error && (
+          <p className="mt-3 text-center text-red-500 text-sm">{error}</p>
+        )}
+
+        <form onSubmit={handleSubmit} className="mt-6">
+          <div className="mb-4">
+            <label className="block text-gray-700 dark:text-gray-300 text-left">Email</label>
+            <input
+              type="email"
+              placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className={`w-full px-4 py-2 mt-1 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${emailError ? "border-red-500" : ""}`}
+              required
+            />
+            {emailError && <p className="text-red-500 text-sm">{emailError}</p>}
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-gray-700 dark:text-gray-300 text-left">Password</label>
+            <input
+              type="password"
+              placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className={`w-full px-4 py-2 mt-1 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${passwordError ? "border-red-500" : ""}`}
+              required
+            />
+            {passwordError && <p className="text-red-500 text-sm">{passwordError}</p>}
+          </div>
+
+          <button
+            type="submit"
+            className="w-full px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-all"
+            disabled={loading}
+          >
+            {loading ? "Processing..." : requireNewPassword ? "Set New Password" : "Sign In"}
+          </button>
+        </form>
+      </motion.div>
+    </div>
   );
 }

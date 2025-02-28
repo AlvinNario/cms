@@ -12,11 +12,28 @@ export default function SignOutButton() {
   };
 
   return (
-    <button
-      onClick={handleSignOut}
-      className="px-4 py-2 text-white bg-red-600 rounded"
-    >
-      Sign Out
-    </button>
+    <div className="flex flex-col items-center justify-between w-full p-6 bg-gray-100 dark:bg-gray-800 shadow-md relative">
+      <h1 className="text-xl font-bold text-gray-900 dark:text-white text-center">Welcome to the Dashboard</h1>
+      <button
+        onClick={handleSignOut}
+        className="absolute top-6 right-6 px-5 py-3 text-white bg-red-600 rounded-lg font-semibold shadow-md hover:bg-red-700 transition-all duration-300 ease-in-out flex items-center gap-2"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth="2"
+          stroke="currentColor"
+          className="w-5 h-5"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 002 2h3a2 2 0 002-2v-1m-5-10V5a2 2 0 00-2-2H7a2 2 0 00-2 2v1"
+          />
+        </svg>
+        Sign Out
+      </button>
+    </div>
   );
 }
